@@ -4,8 +4,28 @@ import '../widgets/order_item.dart';
 import '../widgets/app_drawer.dart';
 import '../providers/orders.dart' show Orders;
 
-class OrdersScreen extends StatelessWidget {
+class OrdersScreen extends StatefulWidget {
   static const routeName = '/orders';
+
+  @override
+  _OrdersScreenState createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends State<OrdersScreen> {
+  // Su dung khi nhieu state logic phuc tap cause re render
+  // Tranh viec re render do cac state khac trong cung 1 widget lam anh huong,
+  // Cac state khac co the cause re-render => Nhan future moi va rebuild lai chi vi 1 thay doi nho
+  // Solution: Bind vo initState
+  Future _ordersFuture;
+  Future _obtainOrdersFuture() {
+    return Provider.of<Orders>(context, listen: false).fetchAndSetOrders();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _ordersFuture = _obtainOrdersFuture();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +37,7 @@ class OrdersScreen extends StatelessWidget {
       ),
       drawer: AppDrawer(),
       body: FutureBuilder(
-        future: Provider.of<Orders>(context, listen: false).fetchAndSetOrders(),
+        future: _ordersFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // check loading;
