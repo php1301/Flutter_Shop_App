@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 class Product with ChangeNotifier {
   final String id;
@@ -16,8 +19,27 @@ class Product with ChangeNotifier {
     @required this.imageUrl,
     this.isFavorite = false,
   });
-  void toggleFavoriteStatus() {
+  Future<void> toggleFavoriteStatus(String token, String userId) async {
+    final oldStatus = isFavorite;
     isFavorite = !isFavorite;
     notifyListeners(); //  giong setState nhung chi goi den cac listeners
+    final url =
+        'https://flutter-shop-app-763cf.firebaseio.com/userFavorites/$userId/$id.json?auth=$token';
+    // Patch, put ,delete phai dua vao statusCode de tra dung response;
+    try {
+      final response = await http.put(
+        url,
+        body: json.encode(
+          isFavorite,
+        ),
+      );
+      if (response.statusCode >= 400) {
+        isFavorite = oldStatus;
+        notifyListeners();
+      }
+    } catch (e) {
+      isFavorite = oldStatus;
+      notifyListeners();
+    }
   }
 }
